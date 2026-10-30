@@ -1,2 +1,14 @@
 # Working area (see rules/structure.md)
 tmp/
+
+# Gradle / Kotlin
+.gradle/
+.kotlin/
+build/
+
+# sdk.dir differs between the host and the container
+local.properties
+
+# IDE
+.idea/
+*.iml

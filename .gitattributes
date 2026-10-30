@@ -2,4 +2,8 @@
 
 # Executed inside the Linux container: CRLF breaks the shebang
 *.sh text eol=lf
+gradlew text eol=lf
 Dockerfile text eol=lf
+
+*.bat text eol=crlf
+*.jar binary
