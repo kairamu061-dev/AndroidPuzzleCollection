@@ -2,8 +2,8 @@
 
 ## 実装タスク一覧
 
-- [ ] `GameState`
-- [ ] `PlayTimer`
+- [x] `GameState`
+- [x] `PlayTimer`
 
 ## テストの線引き（★ 実装を始める前に埋める）
 

@@ -21,7 +21,10 @@
 ## データ構造
 
 ```kotlin
+data class SavedSummary(val difficulty: Difficulty, val elapsedMillis: Long)
+
 sealed interface SudokuUiState {
+    data object Loading : SudokuUiState   // 中断データの読み込み中。上書きの確認を飛ばさないため
     data class Start(val saved: SavedSummary?) : SudokuUiState
     data object Generating : SudokuUiState
     data class Playing(val game: GameState, val elapsedMillis: Long) : SudokuUiState
@@ -31,7 +34,15 @@ sealed interface SudokuUiState {
 ## インターフェース
 
 ```kotlin
-@Composable fun SudokuRoute(onExit: () -> Unit)
+@Composable fun SudokuRoute(onExit: () -> Unit, viewModel: SudokuViewModel = ...)
+
+class SudokuViewModel(
+    repository: SaveRepository,
+    clock: () -> Long = ...,                           // 単調増加の時計
+    generate: (Difficulty, () -> Unit) -> Puzzle = ...,// テストで既知の問題に差し替える
+    ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
+    computeDispatcher: CoroutineDispatcher = Dispatchers.Default,
+)
 ```
 
 ## 依存関係

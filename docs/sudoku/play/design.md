@@ -32,15 +32,20 @@ data class GameState(
 ## インターフェース
 
 ```kotlin
-fun GameState.select(cell: Int): GameState
-fun GameState.input(digit: Int): GameState  // memoMode で記入とメモを分ける
-fun GameState.erase(): GameState
-fun GameState.undo(): GameState
-fun GameState.redo(): GameState
-fun GameState.toggleMemoMode(): GameState
-val GameState.conflicts: Set<Int>
-val GameState.remaining: List<Int>          // 添字 0 が数字 1
-val GameState.isSolved: Boolean
+// GameState のメンバー
+fun select(cell: Int): GameState
+fun input(digit: Int): GameState  // memoMode で記入とメモを分ける
+fun erase(): GameState
+fun undo(): GameState
+fun redo(): GameState
+fun toggleMemoMode(): GameState
+fun isGiven(cell: Int): Boolean
+fun hasMemo(cell: Int, digit: Int): Boolean
+val canUndo: Boolean
+val canRedo: Boolean
+val conflicts: Set<Int>
+val remaining: List<Int>          // 添字 0 が数字 1
+val isSolved: Boolean
 
 class PlayTimer(initialElapsedMillis: Long = 0) {
     fun start(now: Long); fun pause(now: Long); fun elapsed(now: Long): Long

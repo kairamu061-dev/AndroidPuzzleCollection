@@ -2,9 +2,9 @@
 
 ## 実装タスク一覧
 
-- [ ] `Solver`
-- [ ] `Grader`
-- [ ] `Generator`
+- [x] `Solver`
+- [x] `Grader`
+- [x] `Generator`
 
 ## テストの線引き（★ 実装を始める前に埋める）
 

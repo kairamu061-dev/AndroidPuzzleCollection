@@ -36,6 +36,7 @@ data class SavedGame(val state: GameState, val elapsedMillis: Long)
 
 ```kotlin
 object SaveCodec { fun encode(game: SavedGame): String; fun decode(text: String): SavedGame? }
+fun shouldSave(before: GameState, after: GameState): Boolean  // 盤面が変わったときだけ真
 class SaveRepository(filesDir: File) { fun read(): SavedGame?; fun write(game: SavedGame); fun delete() }
 ```
 

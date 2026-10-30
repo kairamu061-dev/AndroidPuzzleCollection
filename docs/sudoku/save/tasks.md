@@ -2,8 +2,8 @@
 
 ## 実装タスク一覧
 
-- [ ] `SaveCodec`
-- [ ] `SaveRepository`
+- [x] `SaveCodec`
+- [x] `SaveRepository`
 
 ## テストの線引き（★ 実装を始める前に埋める）
 

@@ -2,10 +2,10 @@
 
 ## 実装タスク一覧
 
-- [ ] Gradle の骨格と空のアプリ
-- [ ] テーマ
-- [ ] `GameCatalog` と `HomeScreen`
-- [ ] 遷移と戻る操作
+- [x] Gradle の骨格と空のアプリ
+- [x] テーマ
+- [x] `GameCatalog` と `HomeScreen`
+- [x] 遷移と戻る操作
 
 ## テストの線引き（★ 実装を始める前に埋める）
 

@@ -29,21 +29,24 @@
 enum class Difficulty { EASY, MEDIUM, HARD }
 
 // 値は 81 要素、0 は空き。インスタンスは作成後に変更しない
-class Puzzle(val givens: List<Int>, val solution: List<Int>, val difficulty: Difficulty)
+data class Puzzle(val givens: List<Int>, val solution: List<Int>, val difficulty: Difficulty)
 ```
 
 ## インターフェース
 
 ```kotlin
+object Geometry { val units; val unitsOfCell; val peers } // :app が強調表示で peers を使うので公開
 object Solver {
     fun solve(cells: List<Int>): List<Int>?
     fun countSolutions(cells: List<Int>, limit: Int = 2): Int
+    fun randomSolution(random: Random): List<Int>
 }
 object Grader { fun grade(givens: List<Int>): Difficulty }
 object Generator {
+    const val EASY_MIN_GIVENS = 36
     fun generate(difficulty: Difficulty, random: Random, onAttempt: () -> Unit = {}): GeneratedPuzzle
 }
-class GeneratedPuzzle(val puzzle: Puzzle, val attempts: Int)
+data class GeneratedPuzzle(val puzzle: Puzzle, val attempts: Int)
 ```
 
 ## 依存関係

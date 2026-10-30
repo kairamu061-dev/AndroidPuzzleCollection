@@ -25,23 +25,13 @@
 | JDK 17 | ビルド | AGP 9.5 の最小かつ既定（下記） |
 | Dev Container（Docker） | 開発環境 | 環境をリポジトリで再現する。定義: `.devcontainer/` |
 
-### 開発環境の選定結果（2026-10-30 時点）
+### 開発環境
 
-ここの値は選定時の記録。アプリの骨格を作った時点で、バージョンの正は
-`gradle/libs.versions.toml` と Gradle Wrapper に移す。Dockerfile には書かない。
+バージョンの正は `gradle/libs.versions.toml`、`gradle/wrapper/gradle-wrapper.properties`、
+`app/build.gradle.kts` に置く。minSdk 26 は暫定値で、配布対象の端末が決まったら見直す。
 
-| 項目 | 値 | 根拠 |
-|------|-----|------|
-| AGP | 9.5.0 | 測った: 公式リリースノートの最新安定版 |
-| Gradle | 9.6.0 | 測った: AGP 9.5 の最小・既定 |
-| Kotlin | 2.4.21 | 測った: 公式の最新安定版。Compose Compiler プラグインの版で指定し、実際にこの版でコンパイルされた |
-| Compose BOM | 2026.09.00 | 測った: 公式マッピング表の先頭（compose.ui 1.12.1 / material3 1.4.0） |
-| compileSdk / targetSdk | 37 | 測った: AGP 9.5 の上限が 37。Play の要件は 36 以上（2026-08-31〜） |
-| minSdk | 26 | 判断: 暫定値。配布対象の端末が決まったら見直す |
-| Build Tools | 36.0.0 | 測った: AGP が自動で取得した版 |
-
-**測った:** このコンテナ（`claudeuser`）で、上の構成の使い捨て Compose プロジェクトの
-`assembleDebug` が成功した。platform と build-tools は AGP が自動で取得した。
+**測った:** このコンテナ（`claudeuser`）で `./gradlew test assembleDebug` が成功する。
+platform と build-tools は AGP が自動で取得する。
 AGP 9 は Kotlin 内蔵のため `org.jetbrains.kotlin.android` は適用せず、
 `org.jetbrains.kotlin.plugin.compose` のみ適用した。
 
