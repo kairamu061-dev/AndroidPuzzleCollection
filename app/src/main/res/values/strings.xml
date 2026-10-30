@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">パズルコレクション</string>
+    <string name="back">戻る</string>
+    <string name="cancel">キャンセル</string>
+    <string name="go_home">ホームへ</string>
+
+    <string name="sudoku_title">数独</string>
+    <string name="sudoku_description">9×9 の定番パズル</string>
+
+    <string name="difficulty_easy">やさしい</string>
+    <string name="difficulty_medium">ふつう</string>
+    <string name="difficulty_hard">むずかしい</string>
+
+    <string name="new_game">新しいゲーム</string>
+    <string name="resume_game">続きから（%1$s %2$s）</string>
+    <string name="confirm_new_game_title">新しいゲームを始めますか？</string>
+    <string name="confirm_new_game_message">進行中のゲームは失われます。</string>
+    <string name="confirm_new_game_ok">始める</string>
+
+    <string name="action_undo">戻す</string>
+    <string name="action_redo">進む</string>
+    <string name="action_erase">消す</string>
+    <string name="action_memo_off">メモ</string>
+    <string name="action_memo_on">メモ ON</string>
+
+    <string name="cleared_title">クリア</string>
+    <string name="cleared_message">%1$s %2$s</string>
+
+    <string name="cell_position">%1$d行%2$d列</string>
+    <string name="cell_empty">空き</string>
+    <string name="cell_given">初期配置 %1$d</string>
+    <string name="cell_entered">記入 %1$d</string>
+    <string name="cell_conflict">衝突</string>
+    <string name="cell_memo">メモ %1$s</string>
+</resources>
