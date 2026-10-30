@@ -41,5 +41,5 @@
 
 ## ユーザへの要望
 
-- `git remote` が未設定で `gh` も未ログインのため、push と CI、`/verify-request` が実行できていない。GitHub のリポジトリを作成して `gh auth login` が要る
+- `gh` が未ログインのため `/verify-request` が実行できていない。`gh auth login` が要る
 - 実機確認（各 `test-cases.md` の E2E）は未実施

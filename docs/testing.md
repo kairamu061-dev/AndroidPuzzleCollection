@@ -23,8 +23,7 @@ targetSdk 37 固有の挙動はこの自動テストでは確かめられない�
 
 ## CI で自動に回すもの（目標環境を要しない）
 
-定義は `.github/workflows/android.yml`。**推測:** GitHub Actions 上でも動く。リモートが未設定で
-一度も走っていない。手元のコンテナでの `./gradlew test assembleDebug` の成功は測った。
+定義は `.github/workflows/android.yml`。**測った:** GitHub Actions の実行 41068459995（コミット 83dcbf9）が成功し、テストの後に APK が成果物 `app-debug` として出た。
 
 | 対象 | 守れる退行 | 状態 |
 |---|---|---|
