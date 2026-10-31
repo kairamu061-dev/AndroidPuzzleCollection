@@ -82,7 +82,8 @@ class NonogramScreenTest {
 
     @Test fun `I-01 start screen`() {
         launch()
-        listOf("5×5", "10×10", "15×15").forEach { rule.onNodeWithText(it).assertIsDisplayed() }
+        rule.onNodeWithText("20×20").assertIsDisplayed()
+        assertFalse(rule.onAllNodesWithTextExists("15×15"))
     }
 
     @Test fun `I-02 a tap fills`() {

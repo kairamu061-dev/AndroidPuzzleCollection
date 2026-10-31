@@ -1,6 +1,9 @@
 package dev.puzzlecollection.nonogram
 
-val NONOGRAM_SIZES = listOf(5, 10, 15)
+val NONOGRAM_SIZES = listOf(20)
+
+/** Saves from earlier versions may hold these sizes; rejecting them would lose a game. */
+internal val SAVED_NONOGRAM_SIZES = listOf(5, 10, 15) + NONOGRAM_SIZES
 
 /** [solution] is row-major with [size] squared elements. */
 data class NonogramPuzzle(val size: Int, val solution: List<Boolean>) {

@@ -17,7 +17,7 @@ object NonogramSaveCodec {
     fun decode(text: String): Pair<NonogramState, Long>? {
         val lines = text.removeSuffix("\n").split("\n")
         if (lines.size != LINE_COUNT || lines[0] != HEADER) return null
-        val size = lines[1].toIntOrNull()?.takeIf { it in NONOGRAM_SIZES } ?: return null
+        val size = lines[1].toIntOrNull()?.takeIf { it in SAVED_NONOGRAM_SIZES } ?: return null
         val cellCount = size * size
         if (lines[2].length != cellCount || !lines[2].all { it in "01" }) return null
         if (lines[3].length != cellCount || !lines[3].all { it in "012" }) return null

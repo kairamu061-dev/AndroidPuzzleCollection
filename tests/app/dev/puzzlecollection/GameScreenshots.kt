@@ -94,7 +94,5 @@ class GameScreenshots {
         capture(name)
     }
 
-    @Test fun nonogram10() = nonogram(10, "nonogram10")
-
-    @Test fun nonogram15() = nonogram(15, "nonogram15")
+    @Test fun nonogram20() = nonogram(20, "nonogram20")
 }
