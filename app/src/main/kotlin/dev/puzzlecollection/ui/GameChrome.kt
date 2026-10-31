@@ -1,6 +1,7 @@
 package dev.puzzlecollection.ui
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
@@ -59,11 +60,14 @@ fun ClearedDialog(message: String, onNewGame: () -> Unit, onExit: () -> Unit) {
         onDismissRequest = {},
         title = { Text(stringResource(R.string.cleared_title)) },
         text = { Text(message) },
-        confirmButton = {
-            TextButton(onClick = onNewGame) { Text(stringResource(R.string.new_game)) }
-        },
-        dismissButton = {
-            TextButton(onClick = onExit) { Text(stringResource(R.string.go_home)) }
-        },
+        confirmButton = { ClearedDialogButtons(onNewGame, onExit) },
     )
+}
+
+@Composable
+fun ClearedDialogButtons(onNewGame: () -> Unit, onExit: () -> Unit) {
+    Row {
+        TextButton(onClick = onExit) { Text(stringResource(R.string.go_home)) }
+        TextButton(onClick = onNewGame) { Text(stringResource(R.string.new_game)) }
+    }
 }

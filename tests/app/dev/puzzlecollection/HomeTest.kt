@@ -11,8 +11,10 @@ import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.robolectric.annotation.Config
 
 @RunWith(AndroidJUnit4::class)
+@Config(qualifiers = "w360dp-h800dp")
 class HomeTest {
     @get:Rule val rule = createAndroidComposeRule<MainActivity>()
 
@@ -21,8 +23,10 @@ class HomeTest {
         rule.waitForIdle()
     }
 
-    @Test fun `I-01 home lists sudoku`() {
-        rule.onNodeWithText("数独").assertIsDisplayed()
+    @Test fun `I-01 home lists every game`() {
+        listOf("数独", "スライドパズル", "2048", "ノノグラム").forEach {
+            rule.onNodeWithText(it).assertIsDisplayed()
+        }
     }
 
     @Test fun `I-02 opening a game shows its start screen`() {

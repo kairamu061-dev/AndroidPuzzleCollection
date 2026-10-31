@@ -8,6 +8,27 @@
     <string name="sudoku_title">数独</string>
     <string name="sudoku_description">9×9 の定番パズル</string>
 
+    <string name="slide_title">スライドパズル</string>
+    <string name="slide_description">数字を順番に並べ直す</string>
+    <string name="game2048_title">2048</string>
+    <string name="game2048_description">スワイプで数字を合体させる</string>
+    <string name="nonogram_title">ノノグラム</string>
+    <string name="nonogram_description">数字を手がかりにマスを塗る</string>
+
+    <string name="size_label">%1$d×%2$d</string>
+    <string name="moves_label">手数 %1$d</string>
+    <string name="slide_cleared_message">%1$d 手 %2$s</string>
+
+    <string name="score_label">スコア %1$d</string>
+    <string name="best_label">ベスト %1$d</string>
+    <string name="game2048_reached_title">2048 達成</string>
+    <string name="game2048_continue">続ける</string>
+    <string name="game2048_over_title">ゲームオーバー</string>
+
+    <string name="tool_fill">塗る</string>
+    <string name="tool_cross">×</string>
+    <string name="nonogram_board_description">盤面 塗り %1$d 個 × %2$d 個</string>
+
     <string name="difficulty_easy">やさしい</string>
     <string name="difficulty_medium">ふつう</string>
     <string name="difficulty_hard">むずかしい</string>
