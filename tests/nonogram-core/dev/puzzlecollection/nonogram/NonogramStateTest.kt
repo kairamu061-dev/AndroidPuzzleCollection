@@ -32,6 +32,13 @@ class NonogramStateTest {
         assertEquals(listOf(Mark.FILLED, Mark.CROSS, Mark.FILLED), state.cells.take(3))
     }
 
+    @Test fun `U-14 a cancelled stroke leaves no mark and no history`() {
+        val state = fresh.paint(4).strokeStart(0).strokeTo(1).strokeCancel()
+        assertEquals(fresh.paint(4).cells, state.cells)
+        assertEquals(1, state.undoStack.size)
+        assertEquals(state, state.strokeTo(2))
+    }
+
     @Test fun `U-09 one stroke is one undo`() {
         val state = fresh.paint(0, 1, 2)
         assertEquals(1, state.undoStack.size)

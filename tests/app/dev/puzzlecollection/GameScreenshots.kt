@@ -1,10 +1,14 @@
 package dev.puzzlecollection
 
 import androidx.activity.ComponentActivity
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.pinch
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.takahirom.roborazzi.captureRoboImage
 import dev.puzzlecollection.data.SaveFile
@@ -92,6 +96,10 @@ class GameScreenshots {
         rule.setContent { PuzzleTheme { NonogramRoute({}, viewModel) } }
         resume()
         capture(name)
+        rule.onNodeWithTag("nonogram-board").performTouchInput {
+            pinch(center - Offset(10f, 0f), center - Offset(180f, 0f), center + Offset(10f, 0f), center + Offset(180f, 0f))
+        }
+        capture("${name}_zoomed")
     }
 
     @Test fun nonogram20() = nonogram(20, "nonogram20")

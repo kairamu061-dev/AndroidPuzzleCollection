@@ -3,11 +3,14 @@ package dev.puzzlecollection.nonogram
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
-import androidx.compose.foundation.gestures.drag
+import androidx.compose.foundation.gestures.calculateCentroid
+import androidx.compose.foundation.gestures.calculatePan
+import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.aspectRatio
@@ -32,9 +35,11 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -44,7 +49,6 @@ import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -107,6 +111,7 @@ private fun NonogramGameScreen(
 ) {
     val game = state.game
     val size = game.puzzle.size
+    var viewport by remember(size) { mutableStateOf(NonogramViewport()) }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -126,18 +131,30 @@ private fun NonogramGameScreen(
         BoxWithConstraints(Modifier.fillMaxSize().padding(padding).padding(8.dp)) {
             val board = @Composable { modifier: Modifier ->
                 Box(modifier, contentAlignment = Alignment.Center) {
-                    NonogramBoard(game, viewModel, Modifier.aspectRatio(1f))
+                    NonogramBoard(game, viewModel, viewport, { viewport = it }, Modifier.aspectRatio(1f))
                 }
             }
             if (maxWidth > maxHeight) {
                 Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                     board(Modifier.weight(1f).fillMaxSize())
-                    ToolRow(game, viewModel, Modifier.weight(1f).align(Alignment.CenterVertically))
+                    ToolRow(
+                        game,
+                        viewModel,
+                        viewport,
+                        { viewport = NonogramViewport() },
+                        Modifier.weight(1f).align(Alignment.CenterVertically),
+                    )
                 }
             } else {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     board(Modifier.weight(1f).fillMaxWidth())
-                    ToolRow(game, viewModel, Modifier.fillMaxWidth())
+                    ToolRow(
+                        game,
+                        viewModel,
+                        viewport,
+                        { viewport = NonogramViewport() },
+                        Modifier.fillMaxWidth(),
+                    )
                 }
             }
         }
@@ -156,14 +173,33 @@ private fun NonogramGameScreen(
 }
 
 @Composable
-private fun ToolRow(game: NonogramState, viewModel: NonogramViewModel, modifier: Modifier) {
+private fun ToolRow(
+    game: NonogramState,
+    viewModel: NonogramViewModel,
+    viewport: NonogramViewport,
+    onResetZoom: () -> Unit,
+    modifier: Modifier,
+) {
+    val padding = PaddingValues(horizontal = 4.dp)
     Row(modifier, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        OutlinedButton(onClick = viewModel::undo, enabled = game.canUndo, modifier = Modifier.weight(1f)) {
-            Text(stringResource(R.string.action_undo))
-        }
-        OutlinedButton(onClick = viewModel::redo, enabled = game.canRedo, modifier = Modifier.weight(1f)) {
-            Text(stringResource(R.string.action_redo))
-        }
+        OutlinedButton(
+            onClick = viewModel::undo,
+            enabled = game.canUndo,
+            contentPadding = padding,
+            modifier = Modifier.weight(1f),
+        ) { Text(stringResource(R.string.action_undo)) }
+        OutlinedButton(
+            onClick = viewModel::redo,
+            enabled = game.canRedo,
+            contentPadding = padding,
+            modifier = Modifier.weight(1f),
+        ) { Text(stringResource(R.string.action_redo)) }
+        OutlinedButton(
+            onClick = onResetZoom,
+            enabled = viewport.isZoomed,
+            contentPadding = padding,
+            modifier = Modifier.weight(1f),
+        ) { Text(stringResource(R.string.action_show_all)) }
         ToolButton(game, viewModel, Mark.FILLED, R.string.tool_fill, Modifier.weight(1f))
         ToolButton(game, viewModel, Mark.CROSS, R.string.tool_cross, Modifier.weight(1f))
     }
@@ -177,17 +213,26 @@ private fun ToolButton(
     label: Int,
     modifier: Modifier,
 ) {
+    val padding = PaddingValues(horizontal = 4.dp)
     if (game.tool == tool) {
-        Button(onClick = {}, modifier = modifier) { Text(stringResource(label)) }
+        Button(onClick = {}, contentPadding = padding, modifier = modifier) { Text(stringResource(label)) }
     } else {
-        OutlinedButton(onClick = { viewModel.selectTool(tool) }, modifier = modifier) {
-            Text(stringResource(label))
-        }
+        OutlinedButton(
+            onClick = { viewModel.selectTool(tool) },
+            contentPadding = padding,
+            modifier = modifier,
+        ) { Text(stringResource(label)) }
     }
 }
 
 @Composable
-private fun NonogramBoard(game: NonogramState, viewModel: NonogramViewModel, modifier: Modifier) {
+private fun NonogramBoard(
+    game: NonogramState,
+    viewModel: NonogramViewModel,
+    viewport: NonogramViewport,
+    onViewportChange: (NonogramViewport) -> Unit,
+    modifier: Modifier,
+) {
     val puzzle = game.puzzle
     val colors = LocalBoardColors.current
     val dimmed = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
@@ -202,7 +247,15 @@ private fun NonogramBoard(game: NonogramState, viewModel: NonogramViewModel, mod
             height = pixelSize.height.toFloat().coerceAtLeast(1f),
         )
     }
+    val density = LocalDensity.current
+    // Measured once: pinching redraws every frame, past what TextMeasurer's small cache holds.
+    val digits = remember(layout, puzzle) {
+        val style = TextStyle(fontSize = with(density) { (layout.clueStep * 0.82f).toSp() })
+        (0..puzzle.size).associateWith { measurer.measure(it.toString(), style) }
+    }
     val currentLayout by rememberUpdatedState(layout)
+    val currentViewport by rememberUpdatedState(viewport)
+    val currentOnViewportChange by rememberUpdatedState(onViewportChange)
     val description = stringResource(
         R.string.nonogram_board_description,
         game.cells.count { it == Mark.FILLED },
@@ -217,55 +270,83 @@ private fun NonogramBoard(game: NonogramState, viewModel: NonogramViewModel, mod
             .pointerInput(viewModel) {
                 awaitEachGesture {
                     val down = awaitFirstDown()
-                    val first = currentLayout.cellAt(down.position.x, down.position.y) ?: return@awaitEachGesture
-                    down.consume()
-                    viewModel.strokeStart(first)
-                    drag(down.id) { change ->
-                        change.consume()
-                        currentLayout.cellAt(change.position.x, change.position.y)?.let(viewModel::strokeTo)
+                    var stroking = false
+                    currentLayout.cellAt(down.position.x, down.position.y, currentViewport)?.let {
+                        viewModel.strokeStart(it)
+                        stroking = true
                     }
-                    viewModel.strokeEnd()
+                    down.consume()
+                    do {
+                        val event = awaitPointerEvent()
+                        val pressed = event.changes.filter { it.pressed }
+                        if (pressed.size >= 2) {
+                            if (stroking) viewModel.strokeCancel()
+                            stroking = false
+                            val centroid = event.calculateCentroid()
+                            val pan = event.calculatePan()
+                            currentOnViewportChange(
+                                currentViewport
+                                    .zoomedBy(event.calculateZoom(), centroid.x, centroid.y, currentLayout)
+                                    .pannedBy(pan.x, pan.y, currentLayout),
+                            )
+                        } else if (stroking && pressed.size == 1) {
+                            val at = pressed.single().position
+                            currentLayout.cellAt(at.x, at.y, currentViewport)?.let(viewModel::strokeTo)
+                        }
+                        event.changes.forEach { it.consume() }
+                    } while (event.changes.any { it.pressed })
+                    if (stroking) viewModel.strokeEnd()
                 }
             },
     ) {
-        drawGrid(game, layout, colors)
-        val fontSize = (layout.clueStep / density * 0.82f / fontScale).sp
-        val base = TextStyle(fontSize = fontSize, color = colors.given)
-        fun clue(text: String, centerX: Float, centerY: Float, done: Boolean) {
-            val measured = measurer.measure(text, if (done) base.copy(color = dimmed) else base)
+        val zoomed = layout.cell * viewport.scale
+        clipRect(layout.gridLeft, layout.gridTop, layout.gridLeft + layout.gridSize, layout.gridTop + layout.gridSize) {
+            drawGrid(game, layout, viewport, colors)
+        }
+        fun clue(value: Int, centerX: Float, centerY: Float, done: Boolean) {
+            val measured = digits.getValue(value)
             drawText(
                 measured,
+                color = if (done) dimmed else colors.given,
                 topLeft = Offset(centerX - measured.size.width / 2f, centerY - measured.size.height / 2f),
             )
         }
-        puzzle.rowClues.forEachIndexed { row, clues ->
-            val y = layout.gridTop + (row + 0.5f) * layout.cell
-            val done = game.isRowDone(row)
-            clues.forEachIndexed { i, value ->
-                val x = layout.gridLeft - (clues.size - i - 0.5f) * layout.clueStep
-                clue(value.toString(), x, y, done)
+        clipRect(0f, layout.gridTop, layout.gridLeft, layout.gridTop + layout.gridSize) {
+            puzzle.rowClues.forEachIndexed { row, clues ->
+                val y = layout.gridTop + (row + 0.5f) * zoomed - viewport.panY
+                val done = game.isRowDone(row)
+                clues.forEachIndexed { i, value ->
+                    clue(value, layout.gridLeft - (clues.size - i - 0.5f) * layout.clueStep, y, done)
+                }
             }
         }
-        puzzle.columnClues.forEachIndexed { column, clues ->
-            val x = layout.gridLeft + (column + 0.5f) * layout.cell
-            val done = game.isColumnDone(column)
-            clues.forEachIndexed { i, value ->
-                val y = layout.gridTop - (clues.size - i - 0.5f) * layout.clueStep
-                clue(value.toString(), x, y, done)
+        clipRect(layout.gridLeft, 0f, layout.gridLeft + layout.gridSize, layout.gridTop) {
+            puzzle.columnClues.forEachIndexed { column, clues ->
+                val x = layout.gridLeft + (column + 0.5f) * zoomed - viewport.panX
+                val done = game.isColumnDone(column)
+                clues.forEachIndexed { i, value ->
+                    clue(value, x, layout.gridTop - (clues.size - i - 0.5f) * layout.clueStep, done)
+                }
             }
         }
     }
 }
 
-private fun DrawScope.drawGrid(game: NonogramState, layout: NonogramLayout, colors: BoardColors) {
+private fun DrawScope.drawGrid(
+    game: NonogramState,
+    layout: NonogramLayout,
+    viewport: NonogramViewport,
+    colors: BoardColors,
+) {
     val size = game.puzzle.size
-    val cell = layout.cell
-    val left = layout.gridLeft
-    val top = layout.gridTop
-    drawRect(colors.cell, Offset(left, top), Size(layout.gridSize, layout.gridSize))
+    val cell = layout.cell * viewport.scale
+    val left = layout.gridLeft - viewport.panX
+    val top = layout.gridTop - viewport.panY
+    val full = cell * size
+    drawRect(colors.cell, Offset(left, top), Size(full, full))
     game.focus?.let { focus ->
-        drawRect(colors.peer, Offset(left, top + focus / size * cell), Size(layout.gridSize, cell))
-        drawRect(colors.peer, Offset(left + focus % size * cell, top), Size(cell, layout.gridSize))
+        drawRect(colors.peer, Offset(left, top + focus / size * cell), Size(full, cell))
+        drawRect(colors.peer, Offset(left + focus % size * cell, top), Size(cell, full))
     }
     game.cells.forEachIndexed { index, mark ->
         val x = left + index % size * cell
@@ -283,8 +364,8 @@ private fun DrawScope.drawGrid(game: NonogramState, layout: NonogramLayout, colo
             val color = if (thick) colors.thickLine else colors.thinLine
             val width = (if (thick) 2.dp else 1.dp).toPx()
             val at = i * cell
-            drawLine(color, Offset(left + at, top), Offset(left + at, top + layout.gridSize), width)
-            drawLine(color, Offset(left, top + at), Offset(left + layout.gridSize, top + at), width)
+            drawLine(color, Offset(left + at, top), Offset(left + at, top + full), width)
+            drawLine(color, Offset(left, top + at), Offset(left + full, top + at), width)
         }
     }
 }

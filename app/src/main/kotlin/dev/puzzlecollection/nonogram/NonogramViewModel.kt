@@ -23,6 +23,7 @@ class NonogramViewModel(
     fun strokeStart(cell: Int) = update { it.strokeStart(cell) }
     fun strokeTo(cell: Int) = update { it.strokeTo(cell) }
     fun strokeEnd() = update { it.strokeEnd() }
+    fun strokeCancel() = update { it.strokeCancel() }
     fun selectTool(tool: Mark) = update { it.selectTool(tool) }
     fun undo() = update { it.undo() }
     fun redo() = update { it.redo() }

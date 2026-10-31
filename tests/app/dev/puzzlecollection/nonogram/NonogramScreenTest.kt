@@ -4,12 +4,15 @@ import androidx.activity.ComponentActivity
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.click
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.pinch
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import dev.puzzlecollection.data.SaveFile
 import dev.puzzlecollection.onAllNodesWithTextExists
@@ -31,6 +34,28 @@ private val HEART = NonogramPuzzle(
 
 class NonogramLayoutTest {
     private val layout = NonogramLayout(5, 2, 2, 700f, 700f)
+
+    @Test fun `U-02 zoom keeps the point under the fingers`() {
+        val x = layout.cellCenterX(13)
+        val y = layout.cellCenterY(13)
+        val zoomed = NonogramViewport().zoomedBy(2f, x, y, layout)
+        assertEquals(2f, zoomed.scale)
+        assertEquals(13, layout.cellAt(x, y, zoomed))
+    }
+
+    @Test fun `U-02 zoom and pan stay inside the grid`() {
+        val zoomed = NonogramViewport().zoomedBy(100f, layout.gridLeft, layout.gridTop, layout)
+        assertEquals(NonogramViewport.MAX_SCALE, zoomed.scale)
+        assertEquals(0f, zoomed.pannedBy(500f, 500f, layout).panX)
+        val limit = layout.gridSize * (zoomed.scale - 1f)
+        assertEquals(limit, zoomed.pannedBy(-99_999f, 0f, layout).panX)
+        assertEquals(1f, zoomed.zoomedBy(0.001f, 0f, 0f, layout).scale)
+    }
+
+    @Test fun `U-02 clues are not cells while zoomed`() {
+        val zoomed = NonogramViewport().zoomedBy(2f, layout.gridLeft, layout.gridTop, layout)
+        assertNull(layout.cellAt(layout.gridLeft - 1f, layout.gridTop + 1f, zoomed))
+    }
 
     @Test fun `U-01 points map to cells`() {
         assertEquals(0, layout.cellAt(layout.cellCenterX(0), layout.cellCenterY(0)))
@@ -121,6 +146,43 @@ class NonogramScreenTest {
         tap(last)
         rule.onNodeWithText("クリア").assertIsDisplayed()
         rule.waitUntil { !file.exists() }
+    }
+
+    @Test fun `I-07 a pinch zooms and show-all resets`() {
+        play()
+        rule.onNodeWithText("全体").assertIsNotEnabled()
+        board.performTouchInput {
+            pinch(center - Offset(10f, 0f), center - Offset(200f, 0f), center + Offset(10f, 0f), center + Offset(200f, 0f))
+        }
+        rule.waitForIdle()
+        rule.onNodeWithText("全体").assertIsEnabled()
+        rule.onNodeWithText("全体").performClick()
+        rule.onNodeWithText("全体").assertIsNotEnabled()
+    }
+
+    @Test fun `I-08 a second finger cancels the first finger's mark`() {
+        play()
+        val size = board.fetchSemanticsNode().size
+        val layout = NonogramLayout(
+            5,
+            HEART.rowClues.maxOf { it.size },
+            HEART.columnClues.maxOf { it.size },
+            size.width.toFloat(),
+            size.height.toFloat(),
+        )
+        val first = Offset(layout.cellCenterX(1), layout.cellCenterY(1))
+        board.performTouchInput { down(0, first) }
+        rule.waitForIdle()
+        assertTrue(description(), "塗り 1 個" in description())
+        board.performTouchInput { down(1, center) }
+        rule.waitForIdle()
+        board.performTouchInput {
+            moveBy(1, Offset(40f, 0f))
+            up(1)
+            up(0)
+        }
+        rule.waitForIdle()
+        assertTrue(description(), "塗り 0 個" in description())
     }
 
     @Test fun `I-06 resume restores the board`() {

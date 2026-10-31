@@ -25,6 +25,7 @@
     <string name="game2048_continue">続ける</string>
     <string name="game2048_over_title">ゲームオーバー</string>
 
+    <string name="action_show_all">全体</string>
     <string name="tool_fill">塗る</string>
     <string name="tool_cross">×</string>
     <string name="nonogram_board_description">盤面 塗り %1$d 個 × %2$d 個</string>

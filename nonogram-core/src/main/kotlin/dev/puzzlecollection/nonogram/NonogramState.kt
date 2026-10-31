@@ -54,6 +54,13 @@ data class NonogramState(
         return if (base == cells) ended else ended.copy(undoStack = undoStack + listOf(base), redoStack = emptyList())
     }
 
+    /** Drops the stroke in progress: the first finger of a pinch must leave no mark. */
+    fun strokeCancel(): NonogramState {
+        val base = strokeBase ?: return this
+        if (isSolved) return strokeEnd()
+        return copy(cells = base, strokeBase = null, strokeTarget = null)
+    }
+
     fun undo(): NonogramState {
         if (!canUndo) return this
         return copy(
