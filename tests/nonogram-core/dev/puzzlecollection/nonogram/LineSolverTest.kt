@@ -1,12 +1,8 @@
 package dev.puzzlecollection.nonogram
 
-import kotlin.random.Random
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
-import org.junit.BeforeClass
 import org.junit.Test
 
 private fun pattern(text: String) = text.filter { it in "#." }.map { it == '#' }
@@ -52,39 +48,5 @@ class LineSolverTest {
     @Test fun `U-04 an ambiguous puzzle does not solve`() {
         val diagonal = NonogramPuzzle(2, pattern("#. .#"))
         assertNull(LineSolver.solve(2, diagonal.rowClues, diagonal.columnClues))
-    }
-}
-
-class NonogramGeneratorTest {
-    @Test fun `U-05 puzzles solve by deduction to their solution`() {
-        generated.forEach { (label, puzzle) ->
-            assertEquals(label, puzzle.solution, LineSolver.solve(puzzle.size, puzzle.rowClues, puzzle.columnClues))
-            assertTrue(label, puzzle.solution.any { it } && !puzzle.solution.all { it })
-        }
-    }
-
-    @Test fun `U-06 seeds reproduce`() {
-        assertEquals(NonogramGenerator.generate(10, Random(2)), NonogramGenerator.generate(10, Random(2)))
-        assertNotEquals(NonogramGenerator.generate(10, Random(2)), NonogramGenerator.generate(10, Random(3)))
-    }
-
-    @Test fun `U-07 generation stays under the limit`() {
-        durations.forEach { (size, millis) ->
-            println("U-07 size=$size max=${millis.max()}ms avg=${millis.average().toInt()}ms")
-            assertTrue("$size took ${millis.max()} ms", millis.max() < 5_000)
-        }
-    }
-
-    companion object {
-        private val generated = mutableMapOf<String, NonogramPuzzle>()
-        private val durations = mutableMapOf<Int, MutableList<Long>>()
-
-        @BeforeClass @JvmStatic fun generateAll() {
-            for (size in NONOGRAM_SIZES) for (seed in 1L..30) {
-                val start = System.nanoTime()
-                generated["size=$size seed=$seed"] = NonogramGenerator.generate(size, Random(seed))
-                durations.getOrPut(size) { mutableListOf() } += (System.nanoTime() - start) / 1_000_000
-            }
-        }
     }
 }

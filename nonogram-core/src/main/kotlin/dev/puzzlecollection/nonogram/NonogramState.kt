@@ -5,6 +5,7 @@ enum class Mark { EMPTY, FILLED, CROSS }
 /** A stroke is one press-to-release gesture: it is one undo step and applies one change. */
 data class NonogramState(
     val puzzle: NonogramPuzzle,
+    val pictureId: String? = null,
     val cells: List<Mark> = List(puzzle.size * puzzle.size) { Mark.EMPTY },
     val tool: Mark = Mark.FILLED,
     val focus: Int? = null,

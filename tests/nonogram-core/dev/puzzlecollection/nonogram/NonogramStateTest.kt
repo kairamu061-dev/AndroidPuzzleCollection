@@ -59,6 +59,10 @@ class NonogramStateTest {
         assertEquals(crossed.undoStack.size, unchanged.undoStack.size)
     }
 
+    @Test fun `a picture keeps its id through play`() {
+        assertEquals("heart", NonogramState(HEART, pictureId = "heart").strokeStart(0).strokeEnd().pictureId)
+    }
+
     @Test fun `U-11 solved with crosses, not with an extra fill`() {
         val done = solved()
         assertTrue(done.isSolved)
