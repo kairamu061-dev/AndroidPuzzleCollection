@@ -1,6 +1,8 @@
 package dev.puzzlecollection.nonogram
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.calculateCentroid
@@ -12,6 +14,7 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -51,6 +54,7 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -60,32 +64,41 @@ import dev.puzzlecollection.session.TimedGameRoute
 import dev.puzzlecollection.session.TimedUiState
 import dev.puzzlecollection.ui.BackIconButton
 import dev.puzzlecollection.ui.BoardColors
-import dev.puzzlecollection.ui.ClearedDialog
+import dev.puzzlecollection.ui.ClearedDialogButtons
 import dev.puzzlecollection.ui.LocalBoardColors
 import dev.puzzlecollection.ui.formatElapsed
 
 const val NONOGRAM_SAVE_PATH = "nonogram/save.txt"
+const val NONOGRAM_PROGRESS_PATH = "nonogram/progress.txt"
+
+private const val GALLERY_COLUMNS = 5
 
 private const val BLOCK = 5
 
 @Composable
 fun NonogramRoute(onExit: () -> Unit, viewModel: NonogramViewModel = nonogramViewModel()) {
+    val catalog by viewModel.catalog.collectAsStateWithLifecycle()
+    val pictures = catalog.pictures
+    val next = nextPicture(pictures, catalog.completed)
     TimedGameRoute(
         viewModel = viewModel,
         title = stringResource(R.string.nonogram_title),
-        options = NONOGRAM_SIZES.map { it to stringResource(R.string.size_label, it, it) },
+        options = pictures.mapIndexed { index, picture ->
+            picture to if (picture == next) stringResource(R.string.nonogram_next, index + 1) else null
+        },
         resumeLabel = { start ->
             start.saved?.let { saved ->
                 stringResource(
                     R.string.resume_game,
-                    stringResource(R.string.size_label, saved.puzzle.size, saved.puzzle.size),
+                    gameTitle(saved, pictures),
                     formatElapsed(start.elapsedMillis),
                 )
             }
         },
         onExit = onExit,
+        startExtra = { pick -> PictureGallery(catalog, pick) },
     ) { playing ->
-        NonogramGameScreen(playing, viewModel) {
+        NonogramGameScreen(playing, viewModel, pictures) {
             viewModel.leaveGame()
             onExit()
         }
@@ -97,9 +110,82 @@ private fun nonogramViewModel(): NonogramViewModel {
     val appContext = LocalContext.current.applicationContext
     return viewModel(
         factory = viewModelFactory {
-            initializer { NonogramViewModel(SaveFile(appContext.filesDir, NONOGRAM_SAVE_PATH)) }
+            initializer {
+                NonogramViewModel(
+                    SaveFile(appContext.filesDir, NONOGRAM_SAVE_PATH),
+                    SaveFile(appContext.filesDir, NONOGRAM_PROGRESS_PATH),
+                )
+            }
         },
     )
+}
+
+/** Names the puzzle by number: showing the picture's name would give the answer away. */
+@Composable
+private fun gameTitle(game: NonogramState, pictures: List<NonogramPicture>): String {
+    val index = pictures.indexOfFirst { it.id == game.pictureId }
+    return if (index >= 0) {
+        stringResource(R.string.nonogram_number, index + 1)
+    } else {
+        stringResource(R.string.size_label, game.puzzle.size, game.puzzle.size)
+    }
+}
+
+@Composable
+private fun PictureGallery(catalog: NonogramCatalog, onPick: (Int) -> Unit) {
+    Text(
+        text = stringResource(R.string.nonogram_completed, catalog.completed.count { id -> catalog.pictures.any { it.id == id } }, catalog.pictures.size),
+        style = MaterialTheme.typography.titleMedium,
+        modifier = Modifier.padding(top = 12.dp),
+    )
+    catalog.pictures.withIndex().chunked(GALLERY_COLUMNS).forEach { row ->
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            row.forEach { (index, picture) ->
+                PictureThumbnail(picture, picture.id in catalog.completed, Modifier.weight(1f)) {
+                    onPick(index)
+                }
+            }
+            repeat(GALLERY_COLUMNS - row.size) { Spacer(Modifier.weight(1f)) }
+        }
+    }
+}
+
+@Composable
+private fun PictureThumbnail(
+    picture: NonogramPicture,
+    completed: Boolean,
+    modifier: Modifier,
+    onClick: () -> Unit,
+) {
+    val colors = LocalBoardColors.current
+    if (completed) {
+        Canvas(
+            modifier
+                .aspectRatio(1f)
+                .clickable(onClick = onClick)
+                .semantics { contentDescription = picture.name },
+        ) {
+            drawRect(colors.cell)
+            val size = picture.puzzle.size
+            val cell = this.size.width / size
+            picture.puzzle.solution.forEachIndexed { index, filled ->
+                if (filled) {
+                    drawRect(
+                        colors.entered,
+                        Offset(index % size * cell, index / size * cell),
+                        Size(cell, cell),
+                    )
+                }
+            }
+        }
+    } else {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = modifier.aspectRatio(1f).background(MaterialTheme.colorScheme.surfaceVariant),
+        ) {
+            Text(stringResource(R.string.nonogram_unknown))
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -107,6 +193,7 @@ private fun nonogramViewModel(): NonogramViewModel {
 private fun NonogramGameScreen(
     state: TimedUiState.Playing<NonogramState>,
     viewModel: NonogramViewModel,
+    pictures: List<NonogramPicture>,
     onExit: () -> Unit,
 ) {
     val game = state.game
@@ -115,7 +202,7 @@ private fun NonogramGameScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.size_label, size, size)) },
+                title = { Text(gameTitle(game, pictures)) },
                 navigationIcon = { BackIconButton(viewModel::leaveGame) },
                 actions = {
                     Text(
@@ -137,38 +224,43 @@ private fun NonogramGameScreen(
             if (maxWidth > maxHeight) {
                 Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                     board(Modifier.weight(1f).fillMaxSize())
-                    ToolRow(
-                        game,
-                        viewModel,
-                        viewport,
-                        { viewport = NonogramViewport() },
-                        Modifier.weight(1f).align(Alignment.CenterVertically),
-                    )
+                    val controls = Modifier.weight(1f).align(Alignment.CenterVertically)
+                    if (game.isSolved) {
+                        ClearedBar(state, pictures, viewModel, onExit, controls)
+                    } else {
+                        ToolRow(game, viewModel, viewport, { viewport = NonogramViewport() }, controls)
+                    }
                 }
             } else {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     board(Modifier.weight(1f).fillMaxWidth())
-                    ToolRow(
-                        game,
-                        viewModel,
-                        viewport,
-                        { viewport = NonogramViewport() },
-                        Modifier.fillMaxWidth(),
-                    )
+                    val controls = Modifier.fillMaxWidth()
+                    if (game.isSolved) {
+                        ClearedBar(state, pictures, viewModel, onExit, controls)
+                    } else {
+                        ToolRow(game, viewModel, viewport, { viewport = NonogramViewport() }, controls)
+                    }
                 }
             }
         }
     }
-    if (game.isSolved) {
-        ClearedDialog(
-            message = stringResource(
-                R.string.cleared_message,
-                stringResource(R.string.size_label, size, size),
-                formatElapsed(state.elapsedMillis),
-            ),
-            onNewGame = viewModel::leaveGame,
-            onExit = onExit,
-        )
+}
+
+/** Shown under the board instead of a dialog: the finished picture is the reward. */
+@Composable
+private fun ClearedBar(
+    state: TimedUiState.Playing<NonogramState>,
+    pictures: List<NonogramPicture>,
+    viewModel: NonogramViewModel,
+    onExit: () -> Unit,
+    modifier: Modifier,
+) {
+    val game = state.game
+    val name = pictures.firstOrNull { it.id == game.pictureId }?.name ?: gameTitle(game, pictures)
+    Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(stringResource(R.string.cleared_title), style = MaterialTheme.typography.titleLarge)
+        Text(stringResource(R.string.cleared_message, name, formatElapsed(state.elapsedMillis)))
+        ClearedDialogButtons(onNewGame = viewModel::leaveGame, onExit = onExit)
     }
 }
 
@@ -344,7 +436,7 @@ private fun DrawScope.drawGrid(
     val top = layout.gridTop - viewport.panY
     val full = cell * size
     drawRect(colors.cell, Offset(left, top), Size(full, full))
-    game.focus?.let { focus ->
+    game.focus?.takeUnless { game.isSolved }?.let { focus ->
         drawRect(colors.peer, Offset(left, top + focus / size * cell), Size(full, cell))
         drawRect(colors.peer, Offset(left + focus % size * cell, top), Size(cell, full))
     }
@@ -354,7 +446,7 @@ private fun DrawScope.drawGrid(
         when (mark) {
             Mark.EMPTY -> Unit
             Mark.FILLED -> drawRect(colors.entered, Offset(x, y), Size(cell, cell))
-            Mark.CROSS -> drawCross(x, y, cell, colors.memo)
+            Mark.CROSS -> if (!game.isSolved) drawCross(x, y, cell, colors.memo)
         }
     }
     for (pass in 0..1) {

@@ -19,8 +19,9 @@ import dev.puzzlecollection.game2048.Game2048State
 import dev.puzzlecollection.game2048.Game2048ViewModel
 import dev.puzzlecollection.game2048.Tile
 import dev.puzzlecollection.nonogram.Mark
+import dev.puzzlecollection.nonogram.NONOGRAM_PROGRESS_PATH
 import dev.puzzlecollection.nonogram.NONOGRAM_SAVE_PATH
-import dev.puzzlecollection.nonogram.NonogramGenerator
+import dev.puzzlecollection.nonogram.NonogramPictures
 import dev.puzzlecollection.nonogram.NonogramRoute
 import dev.puzzlecollection.nonogram.NonogramSaveCodec
 import dev.puzzlecollection.nonogram.NonogramState
@@ -83,7 +84,8 @@ class GameScreenshots {
 
     private fun nonogram(size: Int, name: String) {
         val file = SaveFile(folder.root, NONOGRAM_SAVE_PATH)
-        val puzzle = NonogramGenerator.generate(size, Random(1))
+        val picture = NonogramPictures.all.first()
+        val puzzle = picture.puzzle
         val cells = puzzle.solution.mapIndexed { i, filled ->
             when {
                 i >= size * size * 2 / 3 -> Mark.EMPTY
@@ -91,8 +93,9 @@ class GameScreenshots {
                 else -> Mark.CROSS
             }
         }
-        file.write(NonogramSaveCodec.encode(NonogramState(puzzle, cells), 42_000))
-        val viewModel = NonogramViewModel(file, clock = { 0L })
+        file.write(NonogramSaveCodec.encode(NonogramState(puzzle, picture.id, cells), 42_000))
+        val progress = SaveFile(folder.root, NONOGRAM_PROGRESS_PATH)
+        val viewModel = NonogramViewModel(file, progress, clock = { 0L })
         rule.setContent { PuzzleTheme { NonogramRoute({}, viewModel) } }
         resume()
         capture(name)
@@ -103,4 +106,32 @@ class GameScreenshots {
     }
 
     @Test fun nonogram20() = nonogram(20, "nonogram20")
+
+    @Test fun nonogramStart() {
+        val pictures = NonogramPictures.all
+        val progress = SaveFile(folder.root, NONOGRAM_PROGRESS_PATH)
+        progress.write(pictures.take(8).joinToString("\n") { it.id })
+        val viewModel = NonogramViewModel(SaveFile(folder.root, NONOGRAM_SAVE_PATH), progress)
+        rule.setContent { PuzzleTheme { NonogramRoute({}, viewModel) } }
+        rule.waitUntil { rule.onAllNodesWithTextExists("次の絵") }
+        capture("nonogram_start")
+    }
+
+    @Test fun nonogramCleared() {
+        val picture = NonogramPictures.all[10]
+        val file = SaveFile(folder.root, NONOGRAM_SAVE_PATH)
+        val last = picture.puzzle.solution.lastIndexOf(true)
+        val cells = picture.puzzle.solution.mapIndexed { i, filled ->
+            if (filled && i != last) Mark.FILLED else if (filled) Mark.EMPTY else Mark.CROSS
+        }
+        file.write(NonogramSaveCodec.encode(NonogramState(picture.puzzle, picture.id, cells), 42_000))
+        val viewModel = NonogramViewModel(file, SaveFile(folder.root, NONOGRAM_PROGRESS_PATH), clock = { 0L })
+        rule.setContent { PuzzleTheme { NonogramRoute({}, viewModel) } }
+        resume()
+        rule.runOnUiThread {
+            viewModel.strokeStart(last)
+            viewModel.strokeEnd()
+        }
+        capture("nonogram_cleared")
+    }
 }

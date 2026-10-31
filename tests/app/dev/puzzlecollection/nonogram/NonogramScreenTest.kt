@@ -3,11 +3,13 @@ package dev.puzzlecollection.nonogram
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.assertHasNoClickAction
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.click
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -30,6 +32,11 @@ import org.junit.runner.RunWith
 private val HEART = NonogramPuzzle(
     5,
     (".#.#." + "#####" + "#####" + ".###." + "..#..").map { it == '#' },
+)
+
+private val PICTURES = listOf(
+    NonogramPicture("heart", "ハート", HEART),
+    NonogramPicture("plus", "たす", NonogramPuzzle(5, ("..#.." + "..#.." + "#####" + "..#.." + "..#..").map { it == '#' })),
 )
 
 class NonogramLayoutTest {
@@ -71,16 +78,19 @@ class NonogramScreenTest {
     @get:Rule val rule = createAndroidComposeRule<ComponentActivity>()
 
     private val store by lazy { SaveFile(folder.root, NONOGRAM_SAVE_PATH) }
+    private val progress by lazy { SaveFile(folder.root, NONOGRAM_PROGRESS_PATH) }
     private val file get() = File(folder.root, NONOGRAM_SAVE_PATH)
+    private val progressFile get() = File(folder.root, NONOGRAM_PROGRESS_PATH)
 
-    private fun launch(saved: NonogramState? = null) {
+    private fun launch(saved: NonogramState? = null, completed: Set<String> = emptySet()) {
         saved?.let { store.write(NonogramSaveCodec.encode(it, 1_000)) }
-        val viewModel = NonogramViewModel(store, clock = { 0L }, generate = { _, _ -> HEART })
+        if (completed.isNotEmpty()) progress.write(NonogramProgress.encode(completed))
+        val viewModel = NonogramViewModel(store, progress, clock = { 0L }, loadPictures = { PICTURES })
         rule.setContent { PuzzleTheme { NonogramRoute(onExit = {}, viewModel = viewModel) } }
         rule.waitUntil { rule.onAllNodesWithTextExists("新しいゲーム") }
     }
 
-    private fun play(saved: NonogramState = NonogramState(HEART)) {
+    private fun play(saved: NonogramState = NonogramState(HEART, "heart")) {
         launch(saved)
         rule.onNodeWithText("続きから", substring = true).performClick()
         rule.waitUntil { rule.onAllNodesWithTextExists("塗る") }
@@ -107,8 +117,8 @@ class NonogramScreenTest {
 
     @Test fun `I-01 start screen`() {
         launch()
-        rule.onNodeWithText("20×20").assertIsDisplayed()
-        assertFalse(rule.onAllNodesWithTextExists("15×15"))
+        rule.onNodeWithText("次の絵（問題 1）").assertIsDisplayed()
+        rule.onNodeWithText("完成した絵 0 / 2").assertIsDisplayed()
     }
 
     @Test fun `I-02 a tap fills`() {
@@ -139,13 +149,16 @@ class NonogramScreenTest {
         val cells = HEART.solution.mapIndexed { i, filled ->
             if (filled && i != last) Mark.FILLED else Mark.EMPTY
         }
-        play(NonogramState(HEART, cells))
+        play(NonogramState(HEART, "heart", cells))
         tap(0)
         assertFalse(rule.onAllNodesWithTextExists("クリア"))
         tap(0)
         tap(last)
         rule.onNodeWithText("クリア").assertIsDisplayed()
+        rule.onNodeWithText("ハート", substring = true).assertIsDisplayed()
         rule.waitUntil { !file.exists() }
+        rule.waitUntil { progressFile.exists() }
+        assertEquals(setOf("heart"), NonogramProgress.decode(progressFile.readText()))
     }
 
     @Test fun `I-07 a pinch zooms and show-all resets`() {
@@ -185,8 +198,23 @@ class NonogramScreenTest {
         assertTrue(description(), "塗り 0 個" in description())
     }
 
+    @Test fun `I-09 a finished picture can be replayed, an unfinished one cannot`() {
+        launch(completed = setOf("heart"))
+        rule.onNodeWithText("次の絵（問題 2）").assertIsDisplayed()
+        rule.onNodeWithText("？").assertHasNoClickAction()
+        rule.onNodeWithContentDescription("ハート").performClick()
+        rule.waitUntil { rule.onAllNodesWithTextExists("問題 1") }
+        rule.onNodeWithText("問題 1").assertIsDisplayed()
+    }
+
+    @Test fun `I-10 nothing left to start once all are finished`() {
+        launch(completed = setOf("heart", "plus"))
+        assertFalse(rule.onAllNodesWithTextExists("次の絵"))
+        rule.onNodeWithText("完成した絵 2 / 2").assertIsDisplayed()
+    }
+
     @Test fun `I-06 resume restores the board`() {
-        play(NonogramState(HEART, HEART.solution.indices.map { if (it == 1) Mark.FILLED else Mark.EMPTY }))
+        play(NonogramState(HEART, "heart", HEART.solution.indices.map { if (it == 1) Mark.FILLED else Mark.EMPTY }))
         assertTrue(description(), "塗り 1 個" in description())
     }
 }

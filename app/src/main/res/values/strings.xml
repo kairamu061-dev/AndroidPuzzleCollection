@@ -26,6 +26,10 @@
     <string name="game2048_over_title">ゲームオーバー</string>
 
     <string name="action_show_all">全体</string>
+    <string name="nonogram_next">次の絵（問題 %1$d）</string>
+    <string name="nonogram_number">問題 %1$d</string>
+    <string name="nonogram_completed">完成した絵 %1$d / %2$d</string>
+    <string name="nonogram_unknown">？</string>
     <string name="tool_fill">塗る</string>
     <string name="tool_cross">×</string>
     <string name="nonogram_board_description">盤面 塗り %1$d 個 × %2$d 個</string>

@@ -26,18 +26,25 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import dev.puzzlecollection.R
 
-/** [resumeLabel] null means no saved game, so starting one needs no confirmation. */
+/**
+ * [resumeLabel] null means no saved game, so starting one needs no confirmation.
+ * A null entry in [optionLabels] has no button; [extra] can still start it through `pick`.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GameStartScreen(
     title: String,
     resumeLabel: String?,
-    optionLabels: List<String>,
+    optionLabels: List<String?>,
     onResume: () -> Unit,
     onOption: (Int) -> Unit,
     onBack: () -> Unit,
+    extra: @Composable (pick: (Int) -> Unit) -> Unit = {},
 ) {
     var pendingOption by rememberSaveable { mutableStateOf<Int?>(null) }
+    val pick: (Int) -> Unit = { index ->
+        if (resumeLabel == null) onOption(index) else pendingOption = index
+    }
 
     Scaffold(
         topBar = {
@@ -64,13 +71,13 @@ fun GameStartScreen(
                 modifier = Modifier.padding(top = 12.dp),
             )
             optionLabels.forEachIndexed { index, label ->
-                OutlinedButton(
-                    onClick = { if (resumeLabel == null) onOption(index) else pendingOption = index },
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text(label)
+                if (label != null) {
+                    OutlinedButton(onClick = { pick(index) }, modifier = Modifier.fillMaxWidth()) {
+                        Text(label)
+                    }
                 }
             }
+            extra(pick)
         }
     }
 

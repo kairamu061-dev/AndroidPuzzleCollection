@@ -44,10 +44,19 @@ abstract class TimedGameViewModel<G : Any, O>(
     protected abstract fun isFinished(game: G): Boolean
     protected abstract fun needsSave(before: G, after: G): Boolean
 
+    /** Runs on the IO dispatcher before the start screen shows. */
+    protected open fun loadExtra() {}
+
+    /** Runs once, the moment a game finishes. */
+    protected open fun onFinished(game: G) {}
+
     /** Subclasses call this last in `init`: it reaches the abstract members above. */
     protected fun loadSavedGame() {
         viewModelScope.launch {
-            val saved = withContext(ioDispatcher) { saveFile.read()?.let(::decode) }
+            val saved = withContext(ioDispatcher) {
+                loadExtra()
+                saveFile.read()?.let(::decode)
+            }
             if (saved != null) {
                 game = saved.first
                 timer = PlayTimer(saved.second)
@@ -110,6 +119,7 @@ abstract class TimedGameViewModel<G : Any, O>(
         if (isFinished(after)) {
             pauseTimer()
             saves.delete()
+            onFinished(after)
         } else if (needsSave(before, after)) {
             save(after)
         }

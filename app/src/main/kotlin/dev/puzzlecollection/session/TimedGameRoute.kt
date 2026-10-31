@@ -8,14 +8,15 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.puzzlecollection.ui.GameStartScreen
 import dev.puzzlecollection.ui.LoadingScreen
 
-/** [options] pairs each start option with its label. */
+/** [options] pairs each start option with a button label; null means [startExtra] reaches it. */
 @Composable
 fun <G : Any, O> TimedGameRoute(
     viewModel: TimedGameViewModel<G, O>,
     title: String,
-    options: List<Pair<O, String>>,
+    options: List<Pair<O, String?>>,
     resumeLabel: @Composable (TimedUiState.Start<G>) -> String?,
     onExit: () -> Unit,
+    startExtra: @Composable (pick: (Int) -> Unit) -> Unit = {},
     playing: @Composable (TimedUiState.Playing<G>) -> Unit,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -30,6 +31,7 @@ fun <G : Any, O> TimedGameRoute(
                 onResume = viewModel::resumeGame,
                 onOption = { index -> viewModel.startNewGame(options[index].first) },
                 onBack = onExit,
+                extra = startExtra,
             )
         }
         TimedUiState.Generating -> {
