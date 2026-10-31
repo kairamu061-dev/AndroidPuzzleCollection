@@ -2,8 +2,8 @@
 
 ## 実装タスク一覧
 
-- [ ] `SlideState`
-- [ ] `SlideGenerator`
+- [x] `SlideState`
+- [x] `SlideGenerator`
 
 ## テストの線引き（★ 実装を始める前に埋める）
 

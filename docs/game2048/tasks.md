@@ -2,9 +2,9 @@
 
 ## 実装タスク一覧
 
-- [ ] [logic](./logic/tasks.md)
-- [ ] [save](./save/tasks.md)
-- [ ] [screen](./screen/tasks.md)
+- [x] [logic](./logic/tasks.md)
+- [x] [save](./save/tasks.md)
+- [x] [screen](./screen/tasks.md)
 
 ## 依存関係
 

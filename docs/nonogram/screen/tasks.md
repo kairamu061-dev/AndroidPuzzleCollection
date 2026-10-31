@@ -2,8 +2,8 @@
 
 ## 実装タスク一覧
 
-- [ ] `NonogramViewModel`
-- [ ] 画面
+- [x] `NonogramViewModel`
+- [x] 画面
 
 ## テストの線引き（★ 実装を始める前に埋める）
 

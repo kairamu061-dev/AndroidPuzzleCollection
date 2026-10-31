@@ -2,7 +2,7 @@
 
 ## 実装タスク一覧
 
-- [ ] `SlideSaveCodec`
+- [x] `SlideSaveCodec`
 
 ## テストの線引き（★ 実装を始める前に埋める）
 
