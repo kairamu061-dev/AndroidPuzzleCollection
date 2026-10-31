@@ -16,6 +16,7 @@ object NonogramGenerator { fun generate(size: Int, random: Random, onAttempt: ()
 fun NonogramState.strokeStart(cell): NonogramState
 fun NonogramState.strokeTo(cell): NonogramState
 fun NonogramState.strokeEnd(): NonogramState
+fun NonogramState.strokeCancel(): NonogramState
 ```
 
 解法は 1 行ごとに「置ける全パターンで共通するマス」を動的計画法で求め、変化がなくなるまで行と列を繰り返す。
