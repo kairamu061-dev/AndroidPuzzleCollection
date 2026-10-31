@@ -9,7 +9,7 @@
 ### 作るもの
 
 - パズルゲーム集の Android アプリ（オフラインで完結）
-- 最初のゲーム: 9×9 の数独
+- 収録ゲーム: 9×9 の数独、スライドパズル、2048、ノノグラム
 
 ### 作らないもの
 
@@ -39,7 +39,11 @@ AGP 9 は Kotlin 内蔵のため `org.jetbrains.kotlin.android` は適用せず�
 
 ```
 :app           Android アプリ。画面・ファイル入出力・ゲームの一覧
-  └─ :sudoku-core   数独の規則と状態。Android に依存しない
+  ├─ :game-common    ゲーム共通の純粋ロジック（タイマー）
+  ├─ :sudoku-core    数独の規則と状態。Android に依存しない
+  ├─ :slide-core     スライドパズル
+  ├─ :game2048-core  2048
+  └─ :nonogram-core  ノノグラム
 ```
 
 - ゲームごとに、Android に依存しない `:{game}-core` モジュールと、
