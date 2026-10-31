@@ -5,3 +5,4 @@
 - [logic](./logic/test-cases.md)
 - [screen](./screen/test-cases.md)
 - [save](./save/test-cases.md)
+- [pictures](./pictures/test-cases.md)

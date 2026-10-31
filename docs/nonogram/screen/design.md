@@ -4,6 +4,8 @@
 
 `NonogramViewModel`（`TimedGameViewModel` の派生）、`NonogramRoute`、`NonogramBoard`。
 
+`NonogramViewModel` は問題集と完成の集合を `catalog` で公開する。問題集の読み込みはファイル入出力なので IO で行う。
+
 表示範囲は `NonogramViewport`（倍率と移動量）で持つ。拡大率は盤面の状態ではないので画面側に置き、保存しない。
 ヒントの数字は事前に測って再利用する。ピンチ中は毎フレーム描き直すため。
 

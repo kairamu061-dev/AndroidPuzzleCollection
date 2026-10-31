@@ -25,6 +25,8 @@ abstract class TimedGameViewModel<G : Any, O>(saveFile, clock, ioDispatcher, com
     protected abstract fun decode(text: String): Pair<G, Long>?
     protected abstract fun isFinished(game: G): Boolean
     protected abstract fun needsSave(before: G, after: G): Boolean
+    protected open fun loadExtra()            // IO で読むゲーム固有のデータ
+    protected open fun onFinished(game: G)    // クリアの瞬間に 1 回
     protected fun update(operation: (G) -> G)
 }
 ```

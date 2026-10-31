@@ -5,3 +5,4 @@
 - [logic](./logic/design.md)
 - [screen](./screen/design.md)
 - [save](./save/design.md)
+- [pictures](./pictures/design.md)

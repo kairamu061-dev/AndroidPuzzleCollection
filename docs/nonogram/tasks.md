@@ -4,6 +4,7 @@
 
 - [x] [logic](./logic/tasks.md)
 - [x] [save](./save/tasks.md)
+- [x] [pictures](./pictures/tasks.md)
 - [x] [screen](./screen/tasks.md)
 
 ## 依存関係

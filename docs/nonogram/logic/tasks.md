@@ -3,7 +3,6 @@
 ## 実装タスク一覧
 
 - [x] `LineSolver`
-- [x] `NonogramGenerator`
 - [x] `NonogramState`
 
 ## テストの線引き（★ 実装を始める前に埋める）
