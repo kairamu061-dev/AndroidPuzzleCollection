@@ -14,33 +14,30 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.width
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import dev.puzzlecollection.R
+import dev.puzzlecollection.session.TimedUiState
+import dev.puzzlecollection.ui.BackIconButton
+import dev.puzzlecollection.ui.ClearedDialog
+import dev.puzzlecollection.ui.formatElapsed
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SudokuGameScreen(
-    state: SudokuUiState.Playing,
+    state: TimedUiState.Playing<GameState>,
     viewModel: SudokuViewModel,
     onExit: () -> Unit,
 ) {
@@ -89,7 +86,15 @@ fun SudokuGameScreen(
     }
 
     if (game.isSolved) {
-        ClearedDialog(state, onNewGame = viewModel::leaveGame, onExit = onExit)
+        ClearedDialog(
+            message = stringResource(
+                R.string.cleared_message,
+                difficultyLabel(game.puzzle.difficulty),
+                formatElapsed(state.elapsedMillis),
+            ),
+            onNewGame = viewModel::leaveGame,
+            onExit = onExit,
+        )
     }
 }
 
@@ -158,44 +163,5 @@ private fun NumberPad(game: GameState, onDigit: (Int) -> Unit) {
                 if (row.size < 5) Spacer(Modifier.weight((5 - row.size).toFloat()))
             }
         }
-    }
-}
-
-@Composable
-private fun ClearedDialog(
-    state: SudokuUiState.Playing,
-    onNewGame: () -> Unit,
-    onExit: () -> Unit,
-) {
-    AlertDialog(
-        onDismissRequest = {},
-        title = { Text(stringResource(R.string.cleared_title)) },
-        text = {
-            Text(
-                text = stringResource(
-                    R.string.cleared_message,
-                    difficultyLabel(state.game.puzzle.difficulty),
-                    formatElapsed(state.elapsedMillis),
-                ),
-                textAlign = TextAlign.Start,
-                modifier = Modifier.width(240.dp),
-            )
-        },
-        confirmButton = {
-            TextButton(onClick = onNewGame) { Text(stringResource(R.string.new_game)) }
-        },
-        dismissButton = {
-            TextButton(onClick = onExit) { Text(stringResource(R.string.go_home)) }
-        },
-    )
-}
-
-@Composable
-internal fun BackIconButton(onBack: () -> Unit) {
-    IconButton(onClick = onBack) {
-        Icon(
-            painter = painterResource(R.drawable.ic_arrow_back),
-            contentDescription = stringResource(R.string.back),
-        )
     }
 }

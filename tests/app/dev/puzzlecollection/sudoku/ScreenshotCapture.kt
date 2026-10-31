@@ -5,6 +5,7 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onRoot
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.takahirom.roborazzi.captureRoboImage
+import dev.puzzlecollection.data.SaveFile
 import dev.puzzlecollection.onAllNodesWithTextExists
 import dev.puzzlecollection.ui.PuzzleTheme
 import org.junit.Rule
@@ -31,8 +32,8 @@ class ScreenshotCapture {
         .select(40).input(5)
 
     private fun capture(name: String) {
-        val repository = SaveRepository(folder.root).apply { write(SavedGame(playedGame, 83_000)) }
-        val viewModel = SudokuViewModel(repository, clock = { 0L })
+        val store = SaveFile(folder.root, SUDOKU_SAVE_PATH).apply { write(SaveCodec.encode(SavedGame(playedGame, 83_000))) }
+        val viewModel = SudokuViewModel(store, clock = { 0L })
         rule.setContent { PuzzleTheme { SudokuRoute(onExit = {}, viewModel = viewModel) } }
         rule.waitUntil { rule.onAllNodesWithTextExists("続きから") }
         rule.runOnUiThread {

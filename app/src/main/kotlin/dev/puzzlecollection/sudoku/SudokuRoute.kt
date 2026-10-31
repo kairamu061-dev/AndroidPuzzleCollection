@@ -1,58 +1,43 @@
 package dev.puzzlecollection.sudoku
 
-import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.lifecycle.compose.LifecycleResumeEffect
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import dev.puzzlecollection.R
+import dev.puzzlecollection.data.SaveFile
+import dev.puzzlecollection.session.TimedGameRoute
+import dev.puzzlecollection.ui.formatElapsed
+
+const val SUDOKU_SAVE_PATH = "sudoku/save.txt"
 
 @Composable
 fun SudokuRoute(onExit: () -> Unit, viewModel: SudokuViewModel = sudokuViewModel()) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
-    when (val current = state) {
-        SudokuUiState.Loading -> Progress()
-        is SudokuUiState.Start -> {
-            BackHandler(onBack = onExit)
-            SudokuStartScreen(
-                saved = current.saved,
-                onResume = viewModel::resumeGame,
-                onNewGame = viewModel::startNewGame,
-                onBack = onExit,
-            )
-        }
-        SudokuUiState.Generating -> {
-            BackHandler(onBack = viewModel::cancelGeneration)
-            Progress()
-        }
-        is SudokuUiState.Playing -> {
-            BackHandler(onBack = viewModel::leaveGame)
-            LifecycleResumeEffect(viewModel) {
-                viewModel.onScreenVisible()
-                onPauseOrDispose { viewModel.onScreenHidden() }
+    TimedGameRoute(
+        viewModel = viewModel,
+        title = stringResource(R.string.sudoku_title),
+        options = Difficulty.entries.map { it to difficultyLabel(it) },
+        resumeLabel = { start ->
+            start.saved?.let { saved ->
+                stringResource(
+                    R.string.resume_game,
+                    difficultyLabel(saved.puzzle.difficulty),
+                    formatElapsed(start.elapsedMillis),
+                )
             }
-            SudokuGameScreen(
-                state = current,
-                viewModel = viewModel,
-                onExit = {
-                    viewModel.leaveGame()
-                    onExit()
-                },
-            )
-        }
+        },
+        onExit = onExit,
+    ) { playing ->
+        SudokuGameScreen(
+            state = playing,
+            viewModel = viewModel,
+            onExit = {
+                viewModel.leaveGame()
+                onExit()
+            },
+        )
     }
 }
 
@@ -61,18 +46,9 @@ private fun sudokuViewModel(): SudokuViewModel {
     val appContext = LocalContext.current.applicationContext
     return viewModel(
         factory = viewModelFactory {
-            initializer { SudokuViewModel(SaveRepository(appContext.filesDir)) }
+            initializer { SudokuViewModel(SaveFile(appContext.filesDir, SUDOKU_SAVE_PATH)) }
         },
     )
-}
-
-@Composable
-private fun Progress() {
-    Surface(color = MaterialTheme.colorScheme.background, modifier = Modifier.fillMaxSize()) {
-        Box(contentAlignment = Alignment.Center) {
-            CircularProgressIndicator(Modifier.testTag("progress"))
-        }
-    }
 }
 
 @Composable

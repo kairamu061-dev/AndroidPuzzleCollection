@@ -1,10 +1,10 @@
-package dev.puzzlecollection.sudoku
+package dev.puzzlecollection.common
 
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class PlayTimerTest {
-    @Test fun `U-13 counts only while running`() {
+    @Test fun `U-02 counts only while running`() {
         val timer = PlayTimer(1_000)
         assertEquals(1_000, timer.elapsed(50))
         timer.start(100)
@@ -15,7 +15,7 @@ class PlayTimerTest {
         assertEquals(1_600, timer.elapsed(10_100))
     }
 
-    @Test fun `U-13 repeated calls change nothing`() {
+    @Test fun `U-02 repeated calls change nothing`() {
         val timer = PlayTimer()
         timer.start(100)
         timer.start(500)

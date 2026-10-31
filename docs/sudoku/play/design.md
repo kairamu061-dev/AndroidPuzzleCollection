@@ -10,7 +10,7 @@
 ## アーキテクチャ
 
 - `GameState`: 状態と操作。操作はすべて新しい `GameState` を返し、無視する場合は `this` を返す
-- `PlayTimer`: 経過時間。時刻は引数で受け取る
+- `PlayTimer`（`:game-common`）: 経過時間。時刻は引数で受け取る
 
 ## データ構造
 

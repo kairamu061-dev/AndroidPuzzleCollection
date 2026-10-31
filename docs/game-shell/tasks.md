@@ -2,8 +2,8 @@
 
 ## 実装タスク一覧
 
-- [ ] `:game-common` へ `PlayTimer` を移す
-- [ ] 画面部品・`SaveFile`・`TimedGameViewModel` を切り出し、数独を差し替える
+- [x] `:game-common` へ `PlayTimer` を移す
+- [x] 画面部品・`SaveFile`・`TimedGameViewModel` を切り出し、数独を差し替える
 
 ## テストの線引き（★ 実装を始める前に埋める）
 

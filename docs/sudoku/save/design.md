@@ -10,7 +10,7 @@
 ## アーキテクチャ
 
 - `SaveCodec`（`:sudoku-core`）: `SavedGame` と文字列の相互変換。読めなければ `null`
-- `SaveRepository`（`:app`）: `filesDir/sudoku/save.txt` の読み書きと削除
+- `SaveFile`（`:app`、`docs/game-shell/design.md`）: `filesDir/sudoku/save.txt` の読み書きと削除
 
 ## データ構造
 
@@ -37,7 +37,6 @@ data class SavedGame(val state: GameState, val elapsedMillis: Long)
 ```kotlin
 object SaveCodec { fun encode(game: SavedGame): String; fun decode(text: String): SavedGame? }
 fun shouldSave(before: GameState, after: GameState): Boolean  // 盤面が変わったときだけ真
-class SaveRepository(filesDir: File) { fun read(): SavedGame?; fun write(game: SavedGame); fun delete() }
 ```
 
 ## 依存関係

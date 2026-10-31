@@ -36,7 +36,11 @@ android {
 }
 
 dependencies {
+    implementation(project(":game-common"))
     implementation(project(":sudoku-core"))
+    implementation(project(":slide-core"))
+    implementation(project(":game2048-core"))
+    implementation(project(":nonogram-core"))
     implementation(platform(libs.compose.bom))
     implementation(libs.compose.ui)
     implementation(libs.compose.material3)

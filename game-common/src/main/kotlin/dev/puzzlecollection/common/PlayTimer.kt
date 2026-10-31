@@ -1,4 +1,4 @@
-package dev.puzzlecollection.sudoku
+package dev.puzzlecollection.common
 
 /** `now` is any monotonic millisecond clock; wall-clock time would jump on a clock change. */
 class PlayTimer(initialElapsedMillis: Long = 0) {

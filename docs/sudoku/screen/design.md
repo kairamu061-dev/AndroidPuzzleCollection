@@ -10,26 +10,17 @@
 
 ## アーキテクチャ
 
-- `SudokuViewModel`: `SudokuUiState` を公開し、操作を `GameState` へ渡し、保存・タイマーを扱う。
+- `SudokuViewModel`: `TimedGameViewModel` の派生。操作を `GameState` へ渡す。
   Activity スコープで持ち、ホームへ戻ってもメモリ上のゲームを保つ
-- `SudokuRoute`: 画面状態に応じて開始 / 生成中 / プレイを切り替える
-- `SudokuStartScreen` / `SudokuGameScreen`: 描画のみ
+- `SudokuRoute`: `TimedGameRoute` へ数独の選択肢と画面を渡す
+- `SudokuGameScreen`: 描画のみ
 - `BoardView` / `NumberPad` / `ActionBar`: 部品
 
 保存は 1 本のコルーチンに直列化する。順序が入れ替わると古い状態が最後に書かれるため。
 
 ## データ構造
 
-```kotlin
-data class SavedSummary(val difficulty: Difficulty, val elapsedMillis: Long)
-
-sealed interface SudokuUiState {
-    data object Loading : SudokuUiState   // 中断データの読み込み中。上書きの確認を飛ばさないため
-    data class Start(val saved: SavedSummary?) : SudokuUiState
-    data object Generating : SudokuUiState
-    data class Playing(val game: GameState, val elapsedMillis: Long) : SudokuUiState
-}
-```
+状態は `TimedUiState`（`docs/game-shell/design.md`）。
 
 ## インターフェース
 
@@ -37,7 +28,7 @@ sealed interface SudokuUiState {
 @Composable fun SudokuRoute(onExit: () -> Unit, viewModel: SudokuViewModel = ...)
 
 class SudokuViewModel(
-    repository: SaveRepository,
+    saveFile: SaveFile,
     clock: () -> Long = ...,                           // 単調増加の時計
     generate: (Difficulty, () -> Unit) -> Puzzle = ...,// テストで既知の問題に差し替える
     ioDispatcher: CoroutineDispatcher = Dispatchers.IO,

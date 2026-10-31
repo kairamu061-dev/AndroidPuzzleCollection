@@ -10,6 +10,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import dev.puzzlecollection.data.SaveFile
 import dev.puzzlecollection.onAllNodesWithTextExists
 import java.io.File
 import dev.puzzlecollection.ui.PuzzleTheme
@@ -26,17 +27,17 @@ class SudokuScreenTest {
     @get:Rule val folder = TemporaryFolder()
     @get:Rule val rule = createAndroidComposeRule<ComponentActivity>()
 
-    private val repository by lazy { SaveRepository(folder.root) }
+    private val store by lazy { SaveFile(folder.root, SUDOKU_SAVE_PATH) }
 
     private val saveFile get() = File(folder.root, "sudoku/save.txt")
 
-    /** Reads the file directly: SaveRepository.read must not run alongside the view model's writes. */
+    /** Reads the file directly: SaveFile.read must not run alongside the view model's writes. */
     private fun savedValue(cell: Int): Int? =
         runCatching { SaveCodec.decode(saveFile.readText()) }.getOrNull()?.state?.board?.values?.get(cell)
 
     private fun launch(saved: GameState? = null) {
-        saved?.let { repository.write(SavedGame(it, 5_000)) }
-        val viewModel = SudokuViewModel(repository, clock = { 0L }, generate = { _, _ -> PUZZLE })
+        saved?.let { store.write(SaveCodec.encode(SavedGame(it, 5_000))) }
+        val viewModel = SudokuViewModel(store, clock = { 0L }, generate = { _, _ -> PUZZLE })
         rule.setContent { PuzzleTheme { SudokuRoute(onExit = {}, viewModel = viewModel) } }
         rule.waitUntil { rule.onAllNodesWithTextExists("新しいゲーム") }
     }
@@ -68,6 +69,12 @@ class SudokuScreenTest {
     @Test fun `I-01 start screen without a save`() {
         launch()
         listOf("やさしい", "ふつう", "むずかしい").forEach { rule.onNodeWithText(it).assertIsDisplayed() }
+        assertFalse(rule.onAllNodesWithTextExists("続きから"))
+    }
+
+    @Test fun `save I-02 a damaged save offers no resume`() {
+        store.write("garbage")
+        launch()
         assertFalse(rule.onAllNodesWithTextExists("続きから"))
     }
 

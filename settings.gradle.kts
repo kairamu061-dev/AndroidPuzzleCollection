@@ -17,4 +17,8 @@ dependencyResolutionManagement {
 rootProject.name = "AndroidPuzzleCollection"
 
 include(":app")
+include(":game-common")
 include(":sudoku-core")
+include(":slide-core")
+include(":game2048-core")
+include(":nonogram-core")

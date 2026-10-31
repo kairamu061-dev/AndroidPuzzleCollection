@@ -1,4 +1,4 @@
-package dev.puzzlecollection.sudoku
+package dev.puzzlecollection.ui
 
 import org.junit.Assert.assertEquals
 import org.junit.Test

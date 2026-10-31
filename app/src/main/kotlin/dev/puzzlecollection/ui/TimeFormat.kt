@@ -1,4 +1,4 @@
-package dev.puzzlecollection.sudoku
+package dev.puzzlecollection.ui
 
 import java.util.Locale
 
