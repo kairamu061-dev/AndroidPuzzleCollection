@@ -3,7 +3,7 @@ package dev.puzzlecollection.nonogram
 import kotlin.random.Random
 
 object NonogramGenerator {
-    private const val FILL_CHANCE = 0.6
+    private const val FILL_CHANCE = 0.5
     private const val MIN_FILLED = 0.35
     private const val MAX_FILLED = 0.8
 
