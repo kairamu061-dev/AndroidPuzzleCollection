@@ -29,6 +29,30 @@ class NonogramPicturesTest {
         }
     }
 
+    /** Symmetry lets a player guess half the board. Definition: docs/nonogram/pictures/spec.md. */
+    @Test fun `U-06 at most 10 percent of the pictures are symmetric`() {
+        val symmetric = pictures.filter { symmetryOf(it.puzzle) >= 0.95 }
+        assertTrue(symmetric.map { it.id }.toString(), symmetric.size * 10 <= pictures.size)
+    }
+
+    @Test fun `U-06 the symmetry measure tells the two kinds apart`() {
+        assertEquals(1.0, symmetryOf(HEART), 0.001)
+        val lopsided = NonogramPuzzle(5, ("###.." + "##..." + "#...." + "#...." + "#....").map { it == '#' })
+        assertTrue(symmetryOf(lopsided) < 0.95)
+    }
+
+    private fun symmetryOf(puzzle: NonogramPuzzle): Double {
+        val size = puzzle.size
+        val filled = puzzle.solution.count { it }
+        return (-1..1).maxOf { shift ->
+            puzzle.solution.indices.count { cell ->
+                val mirror = size - 1 - cell % size + shift
+                puzzle.solution[cell] && mirror in 0 until size &&
+                    puzzle.solution[cell / size * size + mirror]
+            }.toDouble() / filled
+        }
+    }
+
     @Test fun `U-04 the next picture is the first unfinished one`() {
         assertEquals(pictures[0], nextPicture(pictures, emptySet()))
         assertEquals(pictures[2], nextPicture(pictures, setOf(pictures[0].id, pictures[1].id)))

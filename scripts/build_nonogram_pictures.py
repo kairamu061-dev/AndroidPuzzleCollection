@@ -3,6 +3,8 @@
 
 Usage: python3 -I scripts/build_nonogram_pictures.py <image-root> <output-file>
 <image-root> holds {category}/{NN}_{id}.png. Add a picture by adding it to PICKS.
+Pick pictures that are asymmetric in themselves; do not rotate them to pass the
+symmetry limit in NonogramPicturesTest.
 The order of the output is the play order, and ids are stored in player saves:
 never rename an id. Adding a picture reshuffles the order, which is safe:
 progress is stored by id.
@@ -18,30 +20,39 @@ SIZE = 20
 ORDER_SEED = 20261031
 
 PICKS = {
-    "animals": {"rabbit": "うさぎ", "bear": "くま", "koala": "コアラ", "fox": "きつね", "cow": "うし", "owl": "ふくろう",
-                "penguin": "ペンギン", "duck": "あひる", "swan": "はくちょう", "rooster": "にわとり", "whale": "くじら",
-                "fish": "さかな", "octopus": "たこ", "squid": "いか", "crab": "かに", "jellyfish": "くらげ",
-                "starfish": "ひとで", "turtle": "かめ"},
-    "food": {"apple": "りんご", "banana": "バナナ", "cherries": "さくらんぼ", "strawberry": "いちご", "grapes": "ぶどう",
-             "watermelon": "すいか", "pineapple": "パイナップル", "carrot": "にんじん", "broccoli": "ブロッコリー",
-             "rice_ball": "おにぎり", "taiyaki": "たいやき", "hamburger": "ハンバーガー", "pizza_slice": "ピザ",
-             "popsicle": "アイスキャンディ", "candy": "キャンディ", "coffee_cup": "コーヒー"},
-    "buildings": {"house": "いえ", "apartment": "マンション", "castle": "おしろ", "japanese_castle": "天守閣",
-                  "torii_gate": "鳥居", "five_story_pagoda": "五重塔", "church": "教会", "cathedral": "大聖堂",
-                  "parthenon": "神殿", "pyramid": "ピラミッド", "lighthouse": "灯台", "windmill": "風車", "factory": "工場",
-                  "suspension_bridge": "つり橋", "circus_tent": "サーカス", "igloo": "かまくら"},
-    "plants": {"tulip": "チューリップ", "sunflower": "ひまわり", "plum_blossom": "うめ", "lotus": "はす", "daisy": "デイジー",
-               "three_leaf_clover": "クローバー", "maple_leaf": "もみじ", "fern_frond": "シダ", "potted_sprout": "ふたば",
-               "pine_tree": "もみの木", "broadleaf_tree": "木", "palm_tree": "やしの木", "saguaro_cactus": "サボテン",
-               "potted_flower": "はちうえ", "bonsai": "ぼんさい", "mushroom": "きのこ"},
-    "tools": {"hammer": "ハンマー", "saw": "のこぎり", "scissors": "はさみ", "key": "かぎ", "padlock": "南京錠", "umbrella": "かさ",
-              "eyeglasses": "めがね", "crown": "おうかん", "top_hat": "シルクハット", "anchor": "いかり", "trumpet": "トランペット",
-              "hourglass": "砂時計", "alarm_clock": "目覚まし時計", "camera": "カメラ", "headphones": "ヘッドホン",
-              "hanger": "ハンガー", "magnet": "じしゃく"},
-    "vehicles": {"suv": "くるま", "bus": "バス", "double_decker_bus": "2階建てバス", "tractor": "トラクター",
-                 "excavator": "ショベルカー", "bicycle": "じてんしゃ", "scooter": "スクーター", "steam_locomotive": "機関車",
-                 "cable_car": "ロープウェイ", "sailboat": "ヨット", "cruise_ship": "客船", "submarine": "せんすいかん",
-                 "jet_airplane": "ひこうき", "hot_air_balloon": "気球", "blimp": "飛行船", "rocket": "ロケット", "ufo": "UFO"},
+    "animals": {
+        "dog": "いぬ", "rabbit": "うさぎ", "bear": "くま", "giraffe": "キリン", "pig": "ぶた",
+        "cow": "うし", "monkey": "さる", "squirrel": "りす", "kangaroo": "カンガルー", "duck": "あひる",
+        "swan": "はくちょう", "flamingo": "フラミンゴ", "rooster": "にわとり", "parrot": "オウム", "whale": "くじら",
+        "dolphin": "イルカ", "shark": "サメ", "fish": "さかな", "octopus": "たこ", "turtle": "かめ",
+        "crocodile": "ワニ", "dinosaur": "きょうりゅう", "snail": "かたつむり", "camel": "らくだ", "snake": "へび",
+    },
+    "buildings": {
+        "house": "いえ", "two_story_house": "2階建ての家", "cottage": "小屋", "windmill": "風車", "watermill": "水車小屋",
+        "factory": "工場", "doghouse": "犬小屋", "church": "教会", "castle": "おしろ", "igloo": "かまくら",
+        "circus_tent": "サーカス", "lighthouse": "灯台", "shop_awning": "お店",
+    },
+    "food": {
+        "apple": "りんご", "cherries": "さくらんぼ", "ramen_bowl": "ラーメン", "taiyaki": "たいやき", "croissant": "クロワッサン",
+        "bone_meat": "骨つき肉", "coffee_cup": "コーヒー", "teapot_drink": "きゅうす", "shortcake": "ショートケーキ", "donut": "ドーナツ",
+    },
+    "plants": {
+        "sunflower": "ひまわり", "potted_sprout": "ふたば", "pine_tree": "もみの木", "broadleaf_tree": "木", "palm_tree": "やしの木",
+        "bonsai": "ぼんさい", "saguaro_cactus": "サボテン", "baobab_tree": "バオバブ", "willow_tree": "やなぎ", "mushroom": "きのこ",
+        "tree_stump": "きりかぶ", "maple_leaf": "もみじ", "potted_flower": "はちうえ", "lily": "ゆり",
+    },
+    "tools": {
+        "saw": "のこぎり", "key": "かぎ", "padlock": "南京錠", "umbrella": "かさ", "eyeglasses": "めがね",
+        "magnifying_glass": "虫めがね", "paint_roller": "ペンキローラー", "lantern": "ランタン", "megaphone": "メガホン", "watering_can": "じょうろ",
+        "cooking_pot": "なべ", "guitar": "ギター", "telephone": "でんわ", "anchor": "いかり", "camera": "カメラ",
+        "trumpet": "トランペット", "top_hat": "シルクハット", "hammer": "ハンマー",
+    },
+    "vehicles": {
+        "sedan_car": "くるま", "pickup_truck": "トラック", "delivery_truck": "配達車", "bus": "バス", "ambulance": "救急車",
+        "fire_engine": "消防車", "tractor": "トラクター", "bulldozer": "ブルドーザー", "excavator": "ショベルカー", "crane_truck": "クレーン車",
+        "forklift": "フォークリフト", "bicycle": "じてんしゃ", "steam_locomotive": "機関車", "bullet_train": "新幹線", "sailboat": "ヨット",
+        "cruise_ship": "客船", "tugboat": "タグボート", "submarine": "せんすいかん", "sled": "そり", "tank": "戦車",
+    },
 }
 
 
