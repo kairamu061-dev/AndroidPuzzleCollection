@@ -15,6 +15,12 @@
     <string name="nonogram_title">ノノグラム</string>
     <string name="nonogram_description">数字を手がかりにマスを塗る</string>
 
+    <string name="numberlink_title">ナンバーリンク</string>
+    <string name="numberlink_description">同じ数字を線でつなぐ</string>
+    <string name="numberlink_connected">つないだ線 %1$d / %2$d</string>
+    <string name="numberlink_empty_cells">空きマスが %1$d 個あります</string>
+    <string name="numberlink_board_description">盤面 つないだ線 %1$d / %2$d 空きマス %3$d</string>
+
     <string name="size_label">%1$d×%2$d</string>
     <string name="moves_label">手数 %1$d</string>
     <string name="slide_cleared_message">%1$d 手 %2$s</string>

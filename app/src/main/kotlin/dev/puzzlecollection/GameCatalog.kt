@@ -4,6 +4,7 @@ import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
 import dev.puzzlecollection.game2048.Game2048Route
 import dev.puzzlecollection.nonogram.NonogramRoute
+import dev.puzzlecollection.numberlink.NumberlinkRoute
 import dev.puzzlecollection.slide.SlideRoute
 import dev.puzzlecollection.sudoku.SudokuRoute
 
@@ -40,6 +41,12 @@ object GameCatalog {
             titleRes = R.string.nonogram_title,
             descriptionRes = R.string.nonogram_description,
             content = { onExit -> NonogramRoute(onExit) },
+        ),
+        GameEntry(
+            id = "numberlink",
+            titleRes = R.string.numberlink_title,
+            descriptionRes = R.string.numberlink_description,
+            content = { onExit -> NumberlinkRoute(onExit) },
         ),
     )
 }

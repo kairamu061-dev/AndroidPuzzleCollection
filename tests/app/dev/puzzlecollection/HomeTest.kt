@@ -4,7 +4,10 @@ import android.content.pm.PackageManager
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.hasScrollAction
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollToNode
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -24,7 +27,8 @@ class HomeTest {
     }
 
     @Test fun `I-01 home lists every game`() {
-        listOf("数独", "スライドパズル", "2048", "ノノグラム").forEach {
+        listOf("数独", "スライドパズル", "2048", "ノノグラム", "ナンバーリンク").forEach {
+            rule.onNode(hasScrollAction()).performScrollToNode(hasText(it))
             rule.onNodeWithText(it).assertIsDisplayed()
         }
     }

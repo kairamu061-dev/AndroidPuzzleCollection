@@ -41,6 +41,7 @@ dependencies {
     implementation(project(":slide-core"))
     implementation(project(":game2048-core"))
     implementation(project(":nonogram-core"))
+    implementation(project(":numberlink-core"))
     implementation(platform(libs.compose.bom))
     implementation(libs.compose.ui)
     implementation(libs.compose.material3)

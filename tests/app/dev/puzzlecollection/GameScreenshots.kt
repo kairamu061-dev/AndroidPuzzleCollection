@@ -26,6 +26,12 @@ import dev.puzzlecollection.nonogram.NonogramRoute
 import dev.puzzlecollection.nonogram.NonogramSaveCodec
 import dev.puzzlecollection.nonogram.NonogramState
 import dev.puzzlecollection.nonogram.NonogramViewModel
+import dev.puzzlecollection.numberlink.NUMBERLINK_SAVE_PATH
+import dev.puzzlecollection.numberlink.NumberlinkGenerator
+import dev.puzzlecollection.numberlink.NumberlinkRoute
+import dev.puzzlecollection.numberlink.NumberlinkSaveCodec
+import dev.puzzlecollection.numberlink.NumberlinkState
+import dev.puzzlecollection.numberlink.NumberlinkViewModel
 import dev.puzzlecollection.slide.SLIDE_SAVE_PATH
 import dev.puzzlecollection.slide.SlideGenerator
 import dev.puzzlecollection.slide.SlideRoute
@@ -106,6 +112,22 @@ class GameScreenshots {
     }
 
     @Test fun nonogram20() = nonogram(20, "nonogram20")
+
+    private fun numberlink(name: String) {
+        val puzzle = NumberlinkGenerator.generate(8, Random(1)).puzzle
+        val drawn = puzzle.lines.mapIndexed { i, line -> if (i % 3 == 0) emptyList() else line.take(line.size - i % 2) }
+        val file = SaveFile(folder.root, NUMBERLINK_SAVE_PATH)
+        file.write(NumberlinkSaveCodec.encode(NumberlinkState(puzzle, drawn), 42_000))
+        val viewModel = NumberlinkViewModel(file, clock = { 0L })
+        rule.setContent { PuzzleTheme { NumberlinkRoute({}, viewModel) } }
+        resume()
+        capture(name)
+    }
+
+    @Test fun numberlink() = numberlink("numberlink")
+
+    @Config(qualifiers = "w360dp-h640dp-night-xhdpi")
+    @Test fun numberlinkDark() = numberlink("numberlink_dark")
 
     @Test fun nonogramStart() {
         val pictures = NonogramPictures.all
