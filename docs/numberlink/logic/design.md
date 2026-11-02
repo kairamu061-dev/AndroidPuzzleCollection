@@ -3,8 +3,8 @@
 ## データ構造
 
 ```kotlin
-// endpoints[k] は数字 k+1 の端点 2 つのマス番号。solution は生成時の解（保存とテスト用。クリア判定には使わない）
-data class NumberlinkPuzzle(val size: Int, val endpoints: List<Pair<Int, Int>>, val solution: List<List<Int>>)
+// lines は生成時の解（保存とテスト用。クリア判定には使わない）。endpoints は各線の両端
+data class NumberlinkPuzzle(val size: Int, val lines: List<List<Int>>) { val endpoints: List<Pair<Int, Int>> }
 
 // paths[k] は数字 k+1 の線。どちらかの端点から始まるマス番号の列。空なら未着手
 data class NumberlinkState(val puzzle, val paths: List<List<Int>>, undo, redo, stroke...)
@@ -17,7 +17,7 @@ object NumberlinkSolver {
     /** 規則の下での解の個数（limit で打ち切り）。ノード上限に達したら null */
     fun countSolutions(size: Int, endpoints: List<Pair<Int, Int>>, limit: Int = 2, nodeBudget: Int, onCheck: () -> Unit): Int?
 }
-object NumberlinkGenerator { fun generate(size: Int, random: Random, onAttempt: () -> Unit = {}): GeneratedNumberlink }
+object NumberlinkGenerator { val SIZES = listOf(6, 7, 8); fun generate(size: Int, random: Random, onAttempt: () -> Unit = {}): GeneratedNumberlink }
 fun NumberlinkState.strokeStart(cell: Int): NumberlinkState
 fun NumberlinkState.strokeTo(cell: Int): NumberlinkState
 fun NumberlinkState.strokeEnd(): NumberlinkState
@@ -36,8 +36,9 @@ val NumberlinkState.isSolved: Boolean   // 規則で判定
 
 ## 生成
 
-1. 盤面を線で覆い尽くす: 1 マスずつの線から始め、隣り合う線の端どうしを無作為につなぐ
-2. 長さ 2 の線や極端に長い線を含む盤面は捨てる
-3. 解の個数が 1 と証明できたものだけを返す。それ以外とノード上限到達はやり直す
+1. 盤面を線で覆い尽くす: 1 マスずつの線から始め、隣り合う線の端どうしを無作為につなぐ（線の長さは盤面の辺の 2 倍まで）
+2. 長さ 3 未満の線を含む盤面は捨てる
+3. 解を 2 つまで探す。別の解が見つかったら、その解が元の線から外れるマスで元の線を 2 本に分け（どちらも長さ 3 以上）、もう一度探す
+4. 解の個数が 1 と証明できたら返す。分けられない・ノード上限に達した・分割の回数が上限を超えたら最初からやり直す
 
 モジュールは `:numberlink-core`。
